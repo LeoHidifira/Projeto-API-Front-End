@@ -1,70 +1,66 @@
-//  DECLARAÇÕES DO ELEMENTOS USANDO DOM
+// DECLARAÇÕES DO ELEMENTOS USANDO DOM(DOCUMENT OBJECT MODEL)
+const videoElemento = document.getElementById("video");
+const botaoScanear =document.getElementById("btn-texto");
+const resultado= document.getElementById("saida");
+const canvas = document.getElementById("canvas");
 
-const videoElemento = document.getElementById('video');
-const botaoScanear = document.getElementById('btn-texto');
-const resultado = document.getElementById('saida');
-const canvas = document.getElementById('canvas');
+//FUNÇÃO QUE VAI HABILITAR A CÂMERA
 
-// FUNÇÃO QUE VAI HABILITAR A CÂMERA
-
-async function configurarCamera() {
+async function configurarCamera(){
     try{
         const midia = await navigator.mediaDevices.getUserMedia({
-            video: {facingMode: "environment"}, //Habilitando a câmera traseira
+            video:{facingMode: "environment"},//habilitando  a camera traseira
             audio: false
         })
-
         videoElemento.srcObject = midia;
-        videoElemento.play(); //Garante que o video começe
-    }catch(error){
-        resultado.innerHTML="Erro ao acessar a câmera", error;
+        videoElemento.play(); //garante que o video comece
+    }catch(erro){
+        resultado.innerText="Erro ao acessar a câmera",erro;
     }
-    
 }
-
-// Executando a função da câmera
-
+//Exercuta a função da camera
 configurarCamera();
 
-// Função para ler o texto da imagem e mostrar na tela
+//função para ler o texto da imagem e mostrar na tela
 
 botaoScanear.onclick = async()=>{
-    botaoScanear.disable = true;
-    resultado.innerHTML = "Fazendo a leitura... Aguarde";
+    botaoScanear.disable= true;// habilita o botão para ler o texto
+    resultado.innerText="Fazendo a leitura...aguarde";
 
-    // Chama a estrutura do canvas
-    const context = canvas.getContext('2d');
+    // chama a estrutura do canvas
+    const context = canvas.getContext("2d");
 
-    // Ajusta o tamanho da tela
-    canvas.width = videoElemento.videoWidth;
-    canvas.height = videoElemento.videoHeight;
+    //ajusta o tamanho da tela
+    canvas.width = videoElemento.videoWidth; // largura
+    canvas.height = videoElemento.videoHeight; //altura
 
-    // reset de qualquer transformção para garantir que a foto não fique invertida
-    context.setTransform(1, 0, 1, 0, 0);
+    //reset de qualquer transformação para garantir que a foto não
+    //fique invertida
+    context.setTransform(1, 0, 1 ,0 ,0);
 
-    // Aplica efeito de contraste e escala de cinza no canva antes de tirar a foto (ajuda a evitar letras aleatorias)
+    //APlica o filtro de contraste e escala de cinza no canvas antes de 
+    //tirar a foto ( ajuda a evitar letras aleatórias)
     context.filter = 'contrast(1.2) grayscale(1)';
 
-    // Construindo a tela para tirar a foto
-    context.drawImage (videoElemento, 0,0, canvas.width, canvas.height);
-
+    //construindo a tela para tirar a foto
+    context.drawImage(videoElemento, 0,0, canvas.width,canvas.height);
     try{
-        const {data: { text }} = await Tesseract.recognize{
+        //captura o texto da imagem e traduz para o portugues
+        const {data: { text }} = await Tesseract.recognize(
             canvas,
             'por'
-        };
+        );
+        //remove espaços excessivos e caracters especiais 
+        const textoFinal= text.trim();
+        //condicional ternaria ? if : else - se o texto for maior ok senão mensagem
+        resultado.innerText = textoFinal.length > 0 ? textoFinal : "Não foi possivel identificar o texto";
 
-        // Remove espaços excessivos e caracteres especiais
-        const textoFinal = text.trim();
-
-        resultado.innerHTML = textoFinal.length > 0 ? textoFinal : "Não foi possivel identificar o texto";
-
-    } catch (error){
-        console.error(error);
-        resultado.innerText = "Erro ao processar", error;
-        
-    } finally{
-        // Desabilita o botão para começar nova leitura
-        botaoScanear.disable = false
+    }catch(erro){
+        console.error(erro);
+        resultado.innerText="Erro ao processar",erro;
+    }finally{
+        //Desabilita o botão para começar nova leitura
+        botaoScanear.disable=false;
     }
+
 }
